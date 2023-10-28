@@ -3,7 +3,6 @@ Check if a WhatsApp account exists by phone number. Save the profile image of a 
 
 # Prerequisites:
 Google Chrome installed.
-ChromeDriver added to your system's PATH.
 The Selenium library installed (pip install selenium).
 
 # Installation and Usage:
