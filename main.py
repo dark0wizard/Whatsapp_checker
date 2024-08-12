@@ -4,24 +4,35 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 import time
 import urllib.request
-import datetime
-import csv
+from data_files import write_data_in_csv, read_phone_numbers_from_txt
+
+
+# Create a whatsapp folder in the specified path to save the session
+
+# Windows: C:\Users\<username>\AppData\local\Google\Chrome\User Data\Whatsapp
+# Mac OS X El Capitan: Users/<username>/Library/Application Support/Google/Chrome/Whatsapp
+# Linux: /home/<username>/.config/google-chrome/Whatsapp
+
 
 # Define the Chrome profile path
-CHROME_PROFILE_PATH = r'user-data-dir=C:\\Users\\<username>\\AppData\\Local\\Google\\Chrome\\User Data\\Whatsapp'
+CHROME_PROFILE_PATH = r'user-data-dir=<enter the path depending on your operating system>'
+
 
 # Set up Chrome options with the profile path
 options = webdriver.ChromeOptions()
 options.add_argument(CHROME_PROFILE_PATH)
 
 
-def whatsapp_login():
+def login():
     '''Uses this function only one time to login at the whatsapp account'''
-    browser = webdriver.Chrome(options=options)
-    browser.maximize_window()
-    browser.get('https://web.whatsapp.com/')
-    time.sleep(20)
-    browser.quit()
+    try:
+        browser = webdriver.Chrome(options=options)
+        browser.maximize_window()
+        browser.get('https://web.whatsapp.com/')
+        time.sleep(20)
+        browser.quit()
+    except Exception as e:
+        print(e)
 
 
 def whatsapp_checker(numbers: list[str]) -> list[list]:
@@ -54,7 +65,8 @@ def whatsapp_checker(numbers: list[str]) -> list[list]:
 
             try:
                 # Copy what the profile info
-                about = WebDriverWait(browser, 1).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[1]/div/div/div[2]/div[5]/span/div/span/div/div/section/div[2]/span/span')))
+                about = WebDriverWait(browser, 1).until(EC.presence_of_element_located((By.XPATH,
+                                                                                        '/html/body/div[1]/div/div/div[2]/div[5]/span/div/span/div/div/section/div[2]/span/span')))
                 check_number.append(about.text)
             except:
                 check_number.append(False)
@@ -62,7 +74,8 @@ def whatsapp_checker(numbers: list[str]) -> list[list]:
             try:
                 # Wait for the larger profile image to appear
                 big_image = WebDriverWait(browser, 1).until(EC.presence_of_element_located(
-                    (By.XPATH, '/html/body/div[1]/div/div/div[2]/div[5]/span/div/span/div/div/section/div[1]/div[1]/div/img')))
+                    (By.XPATH,
+                     '/html/body/div[1]/div/div/div[2]/div[5]/span/div/span/div/div/section/div[1]/div[1]/div/img')))
 
                 # Retrieve the profile image's source
                 check_number.append(big_image.get_attribute("src"))
@@ -80,23 +93,18 @@ def whatsapp_checker(numbers: list[str]) -> list[list]:
     return final_data
 
 
-def write_data_in_csv(data):
-    '''This function saves info about WhatsApp account in a csv file'''
-    today_date = datetime.datetime.now()
-    filename = today_date.strftime("%Y-%m-%d_%H-%M") + ".csv"
-    with open(filename, "w", newline="") as csvfile:
-        writer = csv.writer(csvfile)
-
-        writer.writerow(["Phone number", "Whatsapp", "About", "Picture"])
-        writer.writerows(data)
-
-
 def main():
-    whatsapp_login()  # Use only one time
-    result = whatsapp_checker(['your phone number1', 'your phone number2'])
-    write_data_in_csv(result)
+    login()  # Use only one time
+
+    # Method 1 using a list
+    result1 = whatsapp_checker(['your phone number1', 'your phone number2'])
+    write_data_in_csv(result1)
+
+    # Method 2 reading phones numbers from file
+    data = read_phone_numbers_from_txt('file_path')
+    result2 = whatsapp_checker(data)
+    write_data_in_csv(result2)
 
 
 if __name__ == '__main__':
     main()
-    
